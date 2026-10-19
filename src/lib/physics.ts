@@ -8,7 +8,7 @@ import {
   type SimulationLinkDatum,
   type SimulationNodeDatum,
 } from 'd3-force';
-import { CHAR_W, LINE_H, radiusFor, wrapLabel } from './scene';
+import { CHAR_W, LINE_H, RING_WIDTH, radiusFor, wrapLabel } from './scene';
 import type { MapEdge, MapNode, MapSettings } from './types';
 
 // d3-force only does the maths: it mutates x/y on the node objects each tick,
@@ -103,7 +103,7 @@ export class Physics {
     for (const n of simNodes) {
       n.r = radiusFor(incoming.get(n.id) ?? 0, s.baseSize);
       const lines = n.label ? wrapLabel(n.label) : [];
-      const ring = Math.max(1.4, n.r * 0.2);
+      const ring = RING_WIDTH;
       n.left = n.r + ring;
       n.right = lines.length ? n.r + 8 + Math.max(...lines.map((l) => l.length)) * CHAR_W : n.r + ring;
       n.half = Math.max(n.r + ring, (lines.length * LINE_H) / 2);

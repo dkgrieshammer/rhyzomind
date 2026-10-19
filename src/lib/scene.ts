@@ -20,6 +20,10 @@ export const EDGE_DASH = '1 2.5';
 const EDGE_GAP = 5;
 /** White centre dot; fixed in world units so the size slider does not affect it. */
 export const CENTER_DOT_R = 1.4;
+/** Ring stroke is the same for every node, whatever its size. */
+export const RING_WIDTH = 2;
+/** Space between ring and inner bubble, also the same for every node. */
+export const RING_GAP = 2.5;
 export const CENTER_DOT_COLOR = '#ffffff';
 
 export interface SceneNode {
@@ -50,8 +54,9 @@ export interface Scene {
   byId: Map<string, SceneNode>;
 }
 
+/** Nearly linear growth, so every extra incoming connection still visibly enlarges a node. */
 export function radiusFor(incoming: number, base: number) {
-  return base * (1 + 0.45 * Math.sqrt(incoming));
+  return base * (1 + 0.3 * incoming ** 0.85);
 }
 
 export function wrapLabel(text: string, max = WRAP_CHARS): string[] {
@@ -94,9 +99,9 @@ export function buildScene(nodes: MapNode[], edges: MapEdge[], settings: MapSett
     const sn: SceneNode = {
       node,
       r,
-      ringWidth: Math.max(1.4, r * 0.2),
-      // Inner bubble sits just inside the ring with a narrow gap.
-      dotR: r * 0.7,
+      ringWidth: RING_WIDTH,
+      // Only the inner bubble grows; ring stroke and gap stay constant.
+      dotR: Math.max(CENTER_DOT_R + 1, r - RING_WIDTH / 2 - RING_GAP),
       ring: blendWithNeighbours(node.color, neighbours.get(node.id) ?? [], settings.blend),
       lines,
       labelX: node.x + r + LABEL_GAP,
