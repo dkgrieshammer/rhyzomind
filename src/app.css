@@ -1,0 +1,104 @@
+:root {
+  --bg: #ffffff;
+  --panel: rgba(255, 255, 255, 0.92);
+  --panel-border: #e4e7eb;
+  --fg: #2b2f33;
+  --muted: #8a9096;
+  --edge: #c3c8cd;
+  --label: #3b4045;
+  --accent: #1f3b4d;
+  --accent-fg: #ffffff;
+  --select: #1f3b4d;
+  --hover: rgba(31, 59, 77, 0.07);
+  --shadow: 0 4px 18px rgba(20, 30, 40, 0.08);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #15181b;
+    --panel: rgba(30, 34, 38, 0.92);
+    --panel-border: #2c3136;
+    --fg: #e1e4e7;
+    --muted: #7f868d;
+    --edge: #4a5157;
+    --label: #c9ced3;
+    --accent: #9bc53d;
+    --accent-fg: #15181b;
+    --select: #e1e4e7;
+    --hover: rgba(255, 255, 255, 0.06);
+    --shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #15181b;
+  --panel: rgba(30, 34, 38, 0.92);
+  --panel-border: #2c3136;
+  --fg: #e1e4e7;
+  --muted: #7f868d;
+  --edge: #4a5157;
+  --label: #c9ced3;
+  --accent: #9bc53d;
+  --accent-fg: #15181b;
+  --select: #e1e4e7;
+  --hover: rgba(255, 255, 255, 0.06);
+  --shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--hover);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
