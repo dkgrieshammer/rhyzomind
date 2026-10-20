@@ -8,7 +8,7 @@ import {
 	type SimulationLinkDatum,
 	type SimulationNodeDatum,
 } from "d3-force"
-import {CHAR_W, LINE_H, RING_WIDTH, radiusFor, wrapLabel} from "./scene"
+import {CHAR_W, LINE_H, RING_WIDTH, connectionCounts, radiusFor, wrapLabel} from "./scene"
 import type {MapEdge, MapNode, MapSettings} from "./types"
 
 // d3-force only does the maths: it mutates x/y on the node objects each tick,
@@ -118,11 +118,10 @@ export class Physics {
 
 	/** Re-reads nodes, edges and settings. `heat` restarts the simulation with that alpha. */
 	sync(nodes: MapNode[], edges: MapEdge[], s: MapSettings, heat = 0.4) {
-		const incoming = new Map<string, number>()
-		for (const e of edges) incoming.set(e.target, (incoming.get(e.target) ?? 0) + 1)
+		const connections = connectionCounts(edges)
 		const simNodes = nodes as SimNode[]
 		for (const n of simNodes) {
-			n.r = radiusFor(incoming.get(n.id) ?? 0, s.baseSize)
+			n.r = radiusFor(connections.get(n.id) ?? 0, s.baseSize)
 			const lines = n.label ? wrapLabel(n.label) : []
 			const ring = RING_WIDTH
 			n.left = n.r + ring

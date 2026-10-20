@@ -8,7 +8,7 @@ export function welcomeMap(): MapDoc {
     ['edit', 'double-click a node to edit its text'],
     ['link', 'shift-drag from one node to another to connect them (long-press on touch)'],
     ['unlink', 'shift-drag the same way again to remove a connection'],
-    ['big', 'nodes with more incoming connections grow bigger'],
+    ['big', 'nodes with more connections grow bigger'],
     ['pin', 'alt-click a node to pin it in place'],
     ['color', 'select a node to change its colour in the panel'],
     ['mix', 'colours flow along connections into the target node'],

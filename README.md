@@ -17,7 +17,7 @@ Minimal force-directed mindmaps in the browser. Installable as an app and works 
 | Zoom / pan | wheel / drag background | pinch / drag |
 | Fit | `F` or *fit* | *fit* |
 
-Bubbles grow with the number of **incoming** connections. Colours flow along
+Bubbles grow with the number of connections, in either direction. Colours flow along
 connections: a node takes on the colours of the nodes connecting into it (the
 *blend* slider sets how much), while source nodes keep their own colour.
 

@@ -54,9 +54,19 @@ export interface Scene {
   byId: Map<string, SceneNode>;
 }
 
-/** Nearly linear growth, so every extra incoming connection still visibly enlarges a node. */
-export function radiusFor(incoming: number, base: number) {
-  return base * (1 + 0.3 * incoming ** 0.85);
+/** Nearly linear growth, so every extra connection still visibly enlarges a node. */
+export function radiusFor(connections: number, base: number) {
+  return base * (1 + 0.3 * connections ** 0.85);
+}
+
+/** Connections per node, counting both directions. */
+export function connectionCounts(edges: MapEdge[]) {
+  const count = new Map<string, number>();
+  for (const e of edges) {
+    count.set(e.source, (count.get(e.source) ?? 0) + 1);
+    count.set(e.target, (count.get(e.target) ?? 0) + 1);
+  }
+  return count;
 }
 
 export function wrapLabel(text: string, max = WRAP_CHARS): string[] {
@@ -117,13 +127,12 @@ function cachedFlowColors(nodes: MapNode[], edges: MapEdge[], blend: number) {
 }
 
 export function buildScene(nodes: MapNode[], edges: MapEdge[], settings: MapSettings): Scene {
-  const incoming = new Map<string, number>();
-  for (const e of edges) incoming.set(e.target, (incoming.get(e.target) ?? 0) + 1);
+  const connections = connectionCounts(edges);
   const shownColors = cachedFlowColors(nodes, edges, settings.blend);
 
   const byId = new Map<string, SceneNode>();
   const sNodes = nodes.map((node) => {
-    const r = radiusFor(incoming.get(node.id) ?? 0, settings.baseSize);
+    const r = radiusFor(connections.get(node.id) ?? 0, settings.baseSize);
     const lines = wrapLabel(node.label);
     const sn: SceneNode = {
       node,

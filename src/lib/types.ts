@@ -16,7 +16,7 @@ export interface MapEdge {
 }
 
 export interface MapSettings {
-  /** Base radius of a node without incoming connections. */
+  /** Base radius of a node without connections. */
   baseSize: number;
   /** Multiplier for link length and repulsion. */
   spacing: number;
