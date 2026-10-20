@@ -82,6 +82,8 @@ export class Physics {
 	private charge = forceManyBody<SimNode>().distanceMax(700)
 	private collide = forceBoxCollide()
 	private maxSpeed = 3
+	private holding = false
+	private stillTicks = 0
 
 	constructor(onTick: () => void, onEnd: () => void) {
 		this.sim = forceSimulation<SimNode, SimLink>()
@@ -96,7 +98,20 @@ export class Physics {
 				"speed",
 				forceSpeedLimit(() => this.maxSpeed),
 			)
-			.on("tick", onTick)
+			.on("tick", () => {
+				// Stop as soon as nothing visibly moves instead of creeping on for hundreds of
+				// invisible ticks; this is where most of the idle CPU used to go.
+				if (!this.holding && this.maxVelocity() < 0.03) {
+					if (++this.stillTicks >= 20) {
+						this.stillTicks = 0
+						this.sim.stop()
+						onTick()
+						onEnd()
+						return
+					}
+				} else this.stillTicks = 0
+				onTick()
+			})
 			.on("end", onEnd)
 		this.sim.stop()
 	}
@@ -134,11 +149,21 @@ export class Physics {
 
 	/** Keep the simulation warm while the user drags a node. */
 	hold(on: boolean) {
+		this.holding = on
 		this.sim.alphaTarget(on ? 0.08 : 0)
 		if (on) this.sim.restart()
 	}
 
 	stop() {
 		this.sim.stop()
+	}
+
+	private maxVelocity() {
+		let max = 0
+		for (const n of this.sim.nodes()) {
+			if (n.fx != null) continue
+			max = Math.max(max, Math.abs(n.vx ?? 0), Math.abs(n.vy ?? 0))
+		}
+		return max
 	}
 }

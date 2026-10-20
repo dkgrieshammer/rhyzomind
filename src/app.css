@@ -1,6 +1,6 @@
 :root {
   --bg: #ffffff;
-  --panel: rgba(255, 255, 255, 0.92);
+  --panel: rgba(255, 255, 255, 0.96);
   --panel-border: #e4e7eb;
   --fg: #2b2f33;
   --muted: #8a9096;
@@ -17,7 +17,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --bg: #15181b;
-    --panel: rgba(30, 34, 38, 0.92);
+    --panel: rgba(30, 34, 38, 0.96);
     --panel-border: #2c3136;
     --fg: #e1e4e7;
     --muted: #7f868d;
@@ -34,7 +34,7 @@
 
 :root[data-theme='dark'] {
   --bg: #15181b;
-  --panel: rgba(30, 34, 38, 0.92);
+  --panel: rgba(30, 34, 38, 0.96);
   --panel-border: #2c3136;
   --fg: #e1e4e7;
   --muted: #7f868d;
@@ -99,6 +99,4 @@ input:focus-visible {
   border: 1px solid var(--panel-border);
   border-radius: 6px;
   box-shadow: var(--shadow);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }

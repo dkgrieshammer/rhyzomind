@@ -315,16 +315,17 @@
         {#each scene.nodes as n (n.node.id)}
           {@const sel = app.selection?.kind === 'node' && app.selection.id === n.node.id}
           {@const target = mode.kind === 'connect' && (mode.over === n.node.id || mode.from === n.node.id)}
-          <g class="node" data-node-id={n.node.id}>
-            <circle class="hit" cx={n.node.x} cy={n.node.y} r={n.r + n.ringWidth + 6} />
+          <!-- Positioned by one transform, so moving a node only changes one attribute per frame. -->
+          <g class="node" data-node-id={n.node.id} transform="translate({n.node.x} {n.node.y})">
+            <circle class="hit" r={n.r + n.ringWidth + 6} />
             {#if sel || target}
-              <circle class="halo" cx={n.node.x} cy={n.node.y} r={n.r + n.ringWidth / 2 + 4} stroke-width={1 / view.k} />
+              <circle class="halo" r={n.r + n.ringWidth / 2 + 4} stroke-width={1 / view.k} />
             {/if}
-            <circle cx={n.node.x} cy={n.node.y} r={n.r} fill="none" stroke={n.ring} stroke-width={n.ringWidth} />
-            <circle cx={n.node.x} cy={n.node.y} r={n.dotR} fill={n.ring} />
-            <circle cx={n.node.x} cy={n.node.y} r={CENTER_DOT_R} fill={CENTER_DOT_COLOR} />
+            <circle r={n.r} fill="none" stroke={n.ring} stroke-width={n.ringWidth} />
+            <circle r={n.dotR} fill={n.ring} />
+            <circle r={CENTER_DOT_R} fill={CENTER_DOT_COLOR} />
             {#if n.node.pinned}
-              <circle class="pin" cx={n.node.x} cy={n.node.y - n.r - n.ringWidth / 2 - 4} r="1.6" />
+              <circle class="pin" cy={-n.r - n.ringWidth / 2 - 4} r="1.6" />
             {/if}
           </g>
         {/each}
@@ -335,12 +336,14 @@
         {#each scene.nodes as n (n.node.id)}
           {#if n.lines.some(Boolean)}
             {@const box = labelBox(n)}
-            <g data-node-id={n.node.id}>
-              <rect class="hit txt-bg" x={box.x} y={box.y} width={box.w} height={box.h} />
+            {@const lx = n.labelX - n.node.x}
+            {@const ly = n.labelY - n.node.y}
+            <g data-node-id={n.node.id} transform="translate({n.node.x} {n.node.y})">
+              <rect class="hit txt-bg" x={box.x - n.node.x} y={box.y - n.node.y} width={box.w} height={box.h} />
               {#if app.editingId !== n.node.id}
                 <text class="label" font-size={FONT_SIZE}>
                   {#each n.lines as line, i}
-                    <tspan x={n.labelX} y={n.labelY + i * LINE_H}>{line}</tspan>
+                    <tspan x={lx} y={ly + i * LINE_H}>{line}</tspan>
                   {/each}
                 </text>
               {/if}

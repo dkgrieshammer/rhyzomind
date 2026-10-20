@@ -31,7 +31,7 @@ export interface SceneNode {
   r: number;
   ringWidth: number;
   dotR: number;
-  /** Own colour blended with neighbours; used for both ring and inner bubble. */
+  /** Own colour blended with colour flowing in along connections; used for ring and inner bubble. */
   ring: string;
   lines: string[];
   labelX: number;
@@ -78,19 +78,48 @@ export function wrapLabel(text: string, max = WRAP_CHARS): string[] {
   return out.length ? out : [''];
 }
 
+/**
+ * Colour flows along connections: each node blends its own colour with the *shown*
+ * colours of the nodes pointing into it, so A→B→C carries A's colour through B into C.
+ * Sources are never affected by their targets. Repeated relaxation settles chains
+ * (one pass per link in the longest chain) and keeps cycles from looping forever.
+ */
+function flowColors(nodes: MapNode[], edges: MapEdge[], blend: number) {
+  const shown = new Map(nodes.map((n) => [n.id, n.color]));
+  const sources = new Map<string, string[]>();
+  for (const e of edges) {
+    if (!shown.has(e.source) || !shown.has(e.target)) continue;
+    (sources.get(e.target) ?? sources.set(e.target, []).get(e.target)!).push(e.source);
+  }
+  if (blend <= 0 || !sources.size) return shown;
+  for (let pass = 0; pass < Math.min(nodes.length, 32); pass++) {
+    let changed = false;
+    const next = new Map(shown);
+    for (const n of nodes) {
+      const src = sources.get(n.id);
+      if (!src) continue;
+      const c = blendWithNeighbours(n.color, src.map((id) => shown.get(id)!), blend);
+      if (c !== shown.get(n.id)) (next.set(n.id, c), (changed = true));
+    }
+    shown.clear();
+    for (const [k, v] of next) shown.set(k, v);
+    if (!changed) break;
+  }
+  return shown;
+}
+
+// Colours only depend on structure, not positions, so reuse them between animation frames.
+let colorCache = { key: '', colors: new Map<string, string>() };
+function cachedFlowColors(nodes: MapNode[], edges: MapEdge[], blend: number) {
+  const key = blend + '|' + nodes.map((n) => n.id + n.color).join(',') + '|' + edges.map((e) => e.source + '>' + e.target).join(',');
+  if (key !== colorCache.key) colorCache = { key, colors: flowColors(nodes, edges, blend) };
+  return colorCache.colors;
+}
+
 export function buildScene(nodes: MapNode[], edges: MapEdge[], settings: MapSettings): Scene {
   const incoming = new Map<string, number>();
-  const neighbours = new Map<string, string[]>();
-  const colorOf = new Map(nodes.map((n) => [n.id, n.color]));
-  for (const e of edges) {
-    incoming.set(e.target, (incoming.get(e.target) ?? 0) + 1);
-    const a = colorOf.get(e.source);
-    const b = colorOf.get(e.target);
-    if (a && b) {
-      (neighbours.get(e.source) ?? neighbours.set(e.source, []).get(e.source)!).push(b);
-      (neighbours.get(e.target) ?? neighbours.set(e.target, []).get(e.target)!).push(a);
-    }
-  }
+  for (const e of edges) incoming.set(e.target, (incoming.get(e.target) ?? 0) + 1);
+  const shownColors = cachedFlowColors(nodes, edges, settings.blend);
 
   const byId = new Map<string, SceneNode>();
   const sNodes = nodes.map((node) => {
@@ -102,7 +131,7 @@ export function buildScene(nodes: MapNode[], edges: MapEdge[], settings: MapSett
       ringWidth: RING_WIDTH,
       // Only the inner bubble grows; ring stroke and gap stay constant.
       dotR: Math.max(CENTER_DOT_R + 1, r - RING_WIDTH / 2 - RING_GAP),
-      ring: blendWithNeighbours(node.color, neighbours.get(node.id) ?? [], settings.blend),
+      ring: shownColors.get(node.id) ?? node.color,
       lines,
       labelX: node.x + r + LABEL_GAP,
       labelY: node.y - ((lines.length - 1) * LINE_H) / 2 + FONT_SIZE * 0.35,

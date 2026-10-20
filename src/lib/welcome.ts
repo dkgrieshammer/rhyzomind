@@ -11,7 +11,7 @@ export function welcomeMap(): MapDoc {
     ['big', 'nodes with more incoming connections grow bigger'],
     ['pin', 'alt-click a node to pin it in place'],
     ['color', 'select a node to change its colour in the panel'],
-    ['mix', 'rings blend with the colours of their neighbours'],
+    ['mix', 'colours flow along connections into the target node'],
     ['export', 'export as SVG, PNG or PDF'],
     ['save', 'save as .canvas - opens in Obsidian too'],
   ];
