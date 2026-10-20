@@ -5,12 +5,15 @@ import latinWoff from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400
 import extWoff from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-ext-400-normal.woff?url';
 import latinWoff2 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?inline';
 import extWoff2 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-ext-400-normal.woff2?inline';
-import { CENTER_DOT_COLOR, CENTER_DOT_R, CHAR_W, EDGE_DASH, EDGE_WIDTH, FONT_FAMILY, FONT_SIZE, LINE_H, sceneBounds, type Scene } from './scene';
+import { CENTER_DOT_COLOR, CENTER_DOT_R, CHAR_W, EDGE_DASH, EDGE_WIDTH, FONT_FAMILY, FONT_SIZE, LINE_H, labelBox, sceneBounds, type Scene } from './scene';
 
 export interface ExportColors {
   bg: string;
   edge: string;
   label: string;
+  /** Label background box, as styled by `.txt-bg` on screen. */
+  labelBg: string;
+  labelBgOpacity: number;
 }
 
 export interface SvgOptions {
@@ -44,7 +47,7 @@ function outlineText(text: string, x: number, y: number, fontList: Font[]): stri
 
 export async function buildSvg(scene: Scene, opts: SvgOptions): Promise<{ svg: string; width: number; height: number }> {
   const b = sceneBounds(scene);
-  const { bg, edge, label } = opts.colors;
+  const { bg, edge, label, labelBg, labelBgOpacity } = opts.colors;
   const fontList = opts.outline ? await loadFonts() : [];
   const out: string[] = [];
   out.push(
@@ -75,17 +78,28 @@ export async function buildSvg(scene: Scene, opts: SvgOptions): Promise<{ svg: s
         `<circle cx="${f(x)}" cy="${f(y)}" r="${f(n.dotR)}" fill="${n.ring}"/>` +
         `<circle cx="${f(x)}" cy="${f(y)}" r="${CENTER_DOT_R}" fill="${CENTER_DOT_COLOR}"/>`,
     );
+    out.push('</g>');
+  }
+  out.push('</g>');
+
+  // Labels after all nodes, so text is always in front.
+  out.push('<g id="labels">');
+  for (const n of scene.nodes) {
+    if (!n.node.label) continue;
+    const box = labelBox(n);
+    out.push(
+      `<rect class="txt-bg" x="${f(box.x)}" y="${f(box.y)}" width="${f(box.w)}" height="${f(box.h)}" fill="${labelBg}" fill-opacity="${labelBgOpacity}"/>`,
+    );
     if (opts.outline) {
       const d = n.lines.map((l, i) => outlineText(l, n.labelX, n.labelY + i * LINE_H, fontList)).join('');
-      if (d) out.push(`<path d="${d}" fill="${label}"/>`);
-    } else if (n.node.label) {
+      if (d) out.push(`<path id="label-${esc(n.node.id)}" d="${d}" fill="${label}"/>`);
+    } else {
       out.push(
-        `<text font-family="'${FONT_FAMILY}', '${FONT_FAMILY} Ext', monospace" font-size="${FONT_SIZE}" fill="${label}">` +
+        `<text id="label-${esc(n.node.id)}" font-family="'${FONT_FAMILY}', '${FONT_FAMILY} Ext', monospace" font-size="${FONT_SIZE}" fill="${label}">` +
           n.lines.map((l, i) => `<tspan x="${f(n.labelX)}" y="${f(n.labelY + i * LINE_H)}">${esc(l)}</tspan>`).join('') +
           `</text>`,
       );
     }
-    out.push('</g>');
   }
   out.push('</g></svg>');
   return { svg: out.join('\n'), width: b.w, height: b.h };

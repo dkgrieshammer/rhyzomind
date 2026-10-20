@@ -16,7 +16,17 @@
   function colors() {
     const cs = getComputedStyle(document.documentElement);
     const v = (n: string) => cs.getPropertyValue(n).trim();
-    return { bg: v('--bg'), edge: v('--edge'), label: v('--label') };
+    // Label boxes take their look from the on-screen `.txt-bg` style.
+    const box = document.querySelector('.txt-bg');
+    const bs = box ? getComputedStyle(box) : null;
+    const opacity = bs ? +bs.opacity * +bs.fillOpacity : 0;
+    return {
+      bg: v('--bg'),
+      edge: v('--edge'),
+      label: v('--label'),
+      labelBg: bs?.fill && bs.fill !== 'none' ? bs.fill : '#ffffff',
+      labelBgOpacity: Number.isFinite(opacity) ? opacity : 0,
+    };
   }
 
   async function run(fn: () => Promise<void> | void) {

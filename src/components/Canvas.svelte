@@ -1,7 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { app } from '../lib/app.svelte';
-  import { CENTER_DOT_COLOR, CENTER_DOT_R, CHAR_W, EDGE_DASH, EDGE_WIDTH, FONT_SIZE, LINE_H, WRAP_CHARS } from '../lib/scene';
+  import { CENTER_DOT_COLOR, CENTER_DOT_R, CHAR_W, EDGE_DASH, labelBox, EDGE_WIDTH, FONT_SIZE, LINE_H, WRAP_CHARS } from '../lib/scene';
 
   type Mode =
     | { kind: 'idle' }
@@ -317,15 +317,6 @@
           {@const target = mode.kind === 'connect' && (mode.over === n.node.id || mode.from === n.node.id)}
           <g class="node" data-node-id={n.node.id}>
             <circle class="hit" cx={n.node.x} cy={n.node.y} r={n.r + n.ringWidth + 6} />
-            {#if n.lines.some(Boolean)}
-              <rect
-                class="hit"
-                x={n.labelX - 4}
-                y={n.labelY - FONT_SIZE}
-                width={Math.max(...n.lines.map((l) => l.length)) * CHAR_W + 8}
-                height={(n.lines.length - 1) * LINE_H + FONT_SIZE * 1.4}
-              />
-            {/if}
             {#if sel || target}
               <circle class="halo" cx={n.node.x} cy={n.node.y} r={n.r + n.ringWidth / 2 + 4} stroke-width={1 / view.k} />
             {/if}
@@ -335,14 +326,26 @@
             {#if n.node.pinned}
               <circle class="pin" cx={n.node.x} cy={n.node.y - n.r - n.ringWidth / 2 - 4} r="1.6" />
             {/if}
-            {#if app.editingId !== n.node.id}
-              <text class="label" font-size={FONT_SIZE}>
-                {#each n.lines as line, i}
-                  <tspan x={n.labelX} y={n.labelY + i * LINE_H}>{line}</tspan>
-                {/each}
-              </text>
-            {/if}
           </g>
+        {/each}
+      </g>
+
+      <!-- Labels get their own layer so text is never covered by a node. -->
+      <g class="labels">
+        {#each scene.nodes as n (n.node.id)}
+          {#if n.lines.some(Boolean)}
+            {@const box = labelBox(n)}
+            <g data-node-id={n.node.id}>
+              <rect class="hit txt-bg" x={box.x} y={box.y} width={box.w} height={box.h} />
+              {#if app.editingId !== n.node.id}
+                <text class="label" font-size={FONT_SIZE}>
+                  {#each n.lines as line, i}
+                    <tspan x={n.labelX} y={n.labelY + i * LINE_H}>{line}</tspan>
+                  {/each}
+                </text>
+              {/if}
+            </g>
+          {/if}
         {/each}
       </g>
     </g>
@@ -421,8 +424,14 @@
     stroke: var(--select);
   }
   .label {
+    cursor: pointer;
     fill: var(--label);
     font-family: 'JetBrains Mono', monospace;
+  }
+  .txt-bg {
+    fill: white;
+    opacity: 0.2;
+    z-index: 1000;
   }
   .halo {
     fill: none;

@@ -144,6 +144,16 @@ export function buildScene(nodes: MapNode[], edges: MapEdge[], settings: MapSett
   return { nodes: sNodes, edges: sEdges, byId };
 }
 
+/** Background box behind a node's label, shared by canvas and exports. */
+export function labelBox(n: SceneNode) {
+  return {
+    x: n.labelX - 4,
+    y: n.labelY - FONT_SIZE,
+    w: Math.max(...n.lines.map((l) => l.length)) * CHAR_W + 8,
+    h: (n.lines.length - 1) * LINE_H + FONT_SIZE * 1.4,
+  };
+}
+
 /** World-space bounding box including labels. */
 export function sceneBounds(scene: Scene, pad = 24) {
   if (!scene.nodes.length) return { x: -200, y: -150, w: 400, h: 300 };
