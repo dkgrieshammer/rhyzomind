@@ -56,14 +56,8 @@ class AppState {
   });
 
   private physics = new Physics(
-    () => {
-      // Redraw at most ~30 fps while the layout settles; dragging stays at full rate.
-      const now = performance.now();
-      if (this.dragging || now - this.lastFrame >= 32) {
-        this.lastFrame = now;
-        this.version++;
-      }
-    },
+    // Redraw on every physics tick (one per display frame) for smooth motion.
+    () => this.version++,
     () => {
       this.version++; // final resting position
       this.scheduleSave();
@@ -71,8 +65,6 @@ class AppState {
     },
   );
   private fitOnSettle = false;
-  private dragging = false;
-  private lastFrame = 0;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private dirty = false;
 
@@ -277,7 +269,6 @@ class AppState {
   // ---------- dragging (physics stays live) ----------
 
   dragStart() {
-    this.dragging = true;
     this.physics.hold(true);
   }
 
@@ -290,7 +281,6 @@ class AppState {
   }
 
   dragEnd(id: string, moved: boolean) {
-    this.dragging = false;
     this.physics.hold(false);
     const n = this.node(id);
     if (n && moved && this.pinOnDrag) n.pinned = true;
